@@ -10,7 +10,7 @@ Backtest deterministically. Anchor the proof on-chain. Tokenize as ERC-7857.
 
 <br />
 
-[ Documentation ](https://github.com/Zero-Arena/zero-arena-docs)&nbsp;&nbsp;·&nbsp;&nbsp;[ SDK ](https://github.com/Zero-Arena/zero-arena-sdk)&nbsp;&nbsp;·&nbsp;&nbsp;[ Contracts ](https://github.com/Zero-Arena/zero-arena-contracts)&nbsp;&nbsp;·&nbsp;&nbsp;[ Examples ](https://github.com/Zero-Arena/zero-arena-examples)
+[ Documentation ](https://github.com/Zero-Arena/zero-arena-docs)&nbsp;&nbsp;·&nbsp;&nbsp;[ SDK ](https://github.com/Zero-Arena/zero-arena-sdk)&nbsp;&nbsp;·&nbsp;&nbsp;[ Contracts ](https://github.com/Zero-Arena/zero-arena-contracts)&nbsp;&nbsp;·&nbsp;&nbsp;[ Examples ](https://github.com/Zero-Arena/zero-arena-example-agent)
 
 <br />
 
@@ -62,7 +62,7 @@ const inft    = await za.mintAgent({ agent, certificate: cert, name: 'RSI v1' })
 | - | - | - |
 | **[zero-arena-sdk](https://github.com/Zero-Arena/zero-arena-sdk)** | TypeScript SDK and CLI &nbsp;·&nbsp; published as `zeroarena` on npm | active |
 | **[zero-arena-contracts](https://github.com/Zero-Arena/zero-arena-contracts)** | Solidity contracts &nbsp;·&nbsp; Foundry &nbsp;·&nbsp; OpenZeppelin v5 | active |
-| **[zero-arena-examples](https://github.com/Zero-Arena/zero-arena-examples)** | Reference agents, sample datasets, end-to-end demos | active |
+| **[zero-arena-example-agent](https://github.com/Zero-Arena/zero-arena-example-agent)** | Reference agents, sample datasets, end-to-end demos | active |
 | **[zero-arena-docs](https://github.com/Zero-Arena/zero-arena-docs)** | Documentation site | post-hackathon |
 
 <sub>Developers: start at the SDK. &nbsp;·&nbsp; Auditing on-chain logic: start at the contracts. &nbsp;·&nbsp; Looking for a runnable demo: start at the examples.</sub>
