@@ -85,8 +85,8 @@ V0.1 anchors to BTC and 0G on Binance — spot first, perpetual futures as a str
 
 | Asset | Market | Window |
 | - | - | - |
-| BTC/USDT | Spot &nbsp;·&nbsp; Perp | 365d, 1h candles |
-| 0G/USDT | Spot &nbsp;·&nbsp; Perp (if listed) | from listing, 1h candles |
+| BTC/USDT | Spot &nbsp;·&nbsp; Perp | 365d, 15m candles |
+| 0G/USDT | Spot &nbsp;·&nbsp; Perp (if listed) | from listing, 15m candles |
 
 If 0G is not yet on Binance at ship time, the dataset falls back to a DEX OHLCV source — explicitly tagged in metadata.
 
@@ -98,7 +98,9 @@ If 0G is not yet on Binance at ship time, the dataset falls back to a DEX OHLCV 
 | - | - | - |
 | **[zero-arena-sdk](https://github.com/Zero-Arena/zero-arena-sdk)** | TypeScript SDK and CLI &nbsp;·&nbsp; published as `zeroarena` on npm | active |
 | **[zero-arena-contracts](https://github.com/Zero-Arena/zero-arena-contracts)** | Solidity contracts &nbsp;·&nbsp; Foundry &nbsp;·&nbsp; OpenZeppelin v5 | active |
-| **[zero-arena-example-agent](https://github.com/Zero-Arena/zero-arena-example-agent)** | Reference agents, Binance ingestion, end-to-end demos | active |
+| **[zero-arena-example-agent](https://github.com/Zero-Arena/zero-arena-example-agent)** | Reference agents and end-to-end demos | active |
+| **[zero-arena-bacend](https://github.com/Zero-Arena/zero-arena-bacend)** | Dataset ingestion (Binance → 0G Storage) + oracle re-encryption service | active |
+| **[zero-arena-fe](https://github.com/Zero-Arena/zero-arena-fe)** | Public dashboard — leaderboard + agent verification | active |
 | **[zero-arena-docs](https://github.com/Zero-Arena/zero-arena-docs)** | Documentation site | post-hackathon |
 
 <sub>Developers: start at the SDK. &nbsp;·&nbsp; Auditing on-chain logic: start at the contracts. &nbsp;·&nbsp; Looking for a runnable demo: start at the examples.</sub>
