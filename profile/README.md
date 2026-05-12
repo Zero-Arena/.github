@@ -99,7 +99,7 @@ If 0G is not yet on Binance at ship time, the dataset falls back to a DEX OHLCV 
 | **[zero-arena-sdk](https://github.com/Zero-Arena/zero-arena-sdk)** | TypeScript SDK and CLI &nbsp;·&nbsp; published as `zeroarena` on npm | active |
 | **[zero-arena-contracts](https://github.com/Zero-Arena/zero-arena-contracts)** | Solidity contracts &nbsp;·&nbsp; Foundry &nbsp;·&nbsp; OpenZeppelin v5 | active |
 | **[zero-arena-example-agent](https://github.com/Zero-Arena/zero-arena-example-agent)** | Reference agents and end-to-end demos | active |
-| **[zero-arena-bacend](https://github.com/Zero-Arena/zero-arena-bacend)** | Dataset ingestion (Binance → 0G Storage) + oracle re-encryption service | active |
+| **[zero-arena-bacend](https://github.com/Zero-Arena/zero-arena-be)** | Dataset ingestion (Binance → 0G Storage) + oracle re-encryption service | active |
 | **[zero-arena-fe](https://github.com/Zero-Arena/zero-arena-fe)** | Public dashboard — leaderboard + agent verification | active |
 | **[zero-arena-docs](https://github.com/Zero-Arena/zero-arena-docs)** | Documentation site | post-hackathon |
 
