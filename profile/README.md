@@ -1,140 +1,190 @@
-<div align="center">
-
-<br />
-
 # Zero Arena
 
-**Verifiable performance for AI trading agents on 0G.**
+> **Verifiable performance for AI trading agents.** Prove your winrate without leaking your strategy. Backtest → Certificate → ERC-7857 mint, in 5 lines of TypeScript.
 
-Prove your winrate. Keep your strategy sealed. Tokenize as ERC-7857.
+[![0G](https://img.shields.io/badge/built%20on-0G-black)](https://0g.ai) [![License](https://img.shields.io/badge/license-MIT-black)](./LICENSE) [![npm](https://img.shields.io/npm/v/zeroarena?color=22c55e&label=zeroarena)](https://www.npmjs.com/package/zeroarena) [![Dashboard](https://img.shields.io/badge/dashboard-live-22c55e)](https://zero-arena-fe.vercel.app) [![Oracle](https://img.shields.io/badge/oracle-live-22c55e)](https://transfer-oracle-production-f390.up.railway.app/health) [![X](https://img.shields.io/badge/X-%400arena__labs-black?logo=x&logoColor=white)](https://x.com/0arena_labs)
 
-<br />
-
-[ Documentation ](https://github.com/Zero-Arena/zero-arena-docs)&nbsp;&nbsp;·&nbsp;&nbsp;[ SDK ](https://github.com/Zero-Arena/zero-arena-sdk)&nbsp;&nbsp;·&nbsp;&nbsp;[ Contracts ](https://github.com/Zero-Arena/zero-arena-contracts)&nbsp;&nbsp;·&nbsp;&nbsp;[ Examples ](https://github.com/Zero-Arena/zero-arena-example-agent)
-
-<br />
-
-</div>
+Anyone can claim "70% winrate, 3x ROI." There is no way for a third party to verify without trusting the claimant or demanding the source. Zero Arena closes the gap: deterministic backtest, encrypted run log on 0G Storage, certificate anchored on 0G Chain, ERC-7857 iNFT mint. The strategy never leaves your machine in plaintext.
 
 ---
 
-> The agent intelligence problem is solved. The infrastructure trust problem is not.
+## Live deployments
 
-Anyone can claim "70% winrate, 3x ROI." Today there is no way for a third party to verify that claim without trusting the claimant or demanding the source code. Zero Arena fixes this — the strategy never leaves your machine in plaintext, but the metrics are cryptographically committed and reproducible.
-
-```ts
-const dataset = await za.loadDataset({ rootHash });               // BTC or 0G, spot or perp
-const result  = await za.backtest(agent, dataset, opts);          // deterministic, no Date.now()
-const cert    = await za.certify(result);                         // T2 today, T3 in v0.2
-const inft    = await za.mintAgent({ agent, certificate: cert, name: 'RSI v1' });
-```
-
----
-
-## Architecture
-
-```
-    ┌──────────────┐      ┌──────────────┐      ┌──────────────┐
-    │    Agent     │ ───▶ │   Backtest   │ ───▶ │   runHash    │
-    │  TypeScript  │      │ deterministic│      │   keccak256  │
-    └──────────────┘      └──────────────┘      └──────────────┘
-                                  │                     │
-                          encrypt │                     │ anchor
-                                  ▼                     ▼
-                       ┌──────────────────┐  ┌──────────────────┐
-                       │    0G Storage    │  │    0G Chain      │
-                       │  AES-256-GCM     │  │  Certificate +   │
-                       │  agent + log     │  │  ERC-7857 iNFT   │
-                       └──────────────────┘  └──────────────────┘
-                                                     ▲
-                                                     │ v0.2: TEE attestation
-                                                     │
-                                              ┌────────────────────┐
-                                              │  0G Compute        │
-                                              │  Sealed Inference  │
-                                              │  (Intel TDX +      │
-                                              │   NVIDIA H100/H200)│
-                                              └────────────────────┘
-```
-
-▸ **Verifiability.** Every backtest produces a `runHash` deterministically derivable from `agentHash + datasetHash + trades`. The hash anchors on 0G Chain (with a `trustTier` tag); the encrypted run log lives on 0G Storage. Anyone the owner authorizes can re-run the same agent on the same data and check the hash matches.
-
-▸ **Privacy.** The agent runs on the user's machine. Only encrypted bytes hit 0G Storage. Only metrics + commitments hit 0G Chain. The strategy is never decrypted off-chain.
-
-▸ **Ownership.** Agents that clear a configurable performance threshold are minted as ERC-7857 iNFTs. Transfers go through the oracle re-encryption flow, which re-encrypts metadata for the new owner without ever exposing plaintext.
-
----
-
-## Trust model
-
-| Tier | Mechanism | Available |
+| Component | URL | Notes |
 | - | - | - |
-| **T1** | Commitment: `runHash` anchored on-chain. Trades cannot be edited after submission. | v0.1 |
-| **T2** | Reproducibility: owner authorizes a verifier with the encrypted agent + key; verifier reruns and checks `runHash`. | v0.1 |
-| **T3** | TEE attestation: `BacktestEngine` + the developer's agent run inside a 0G Compute enclave (Intel TDX + NVIDIA H100/H200) used as a generic TEE substrate. Trustless verification by anyone, agent code never revealed. | v0.2 |
+| Public dashboard | [zero-arena-fe.vercel.app](https://zero-arena-fe.vercel.app) | Leaderboard + agent detail, reads chain directly |
+| SDK on npm | [`zeroarena@0.2.1`](https://www.npmjs.com/package/zeroarena) | `npm install zeroarena` |
+| Transfer-oracle | [transfer-oracle-production-f390.up.railway.app](https://transfer-oracle-production-f390.up.railway.app/health) | ERC-7857 re-encryption signer |
+| Season keeper | _(internal, no public URL)_ | Auto-settle daemon, polls every 60s |
+| 0G Chain RPC | `https://evmrpc-testnet.0g.ai` | Galileo testnet |
+| 0G Storage indexer | `https://indexer-storage-testnet-turbo.0g.ai` | |
+| 0G Explorer | [chainscan-galileo.0g.ai](https://chainscan-galileo.0g.ai) | |
+| Follow on X | [@0arena_labs](https://x.com/0arena_labs) | Updates, demos, roadmap |
 
-We do not market v0.1 as "trustless" — we market it as "strategy stays sealed, metrics are committed, and reproducibility is owner-authorized." The architecture is designed so v0.2 wires in T3 without changing the v0.1 API.
+### Contracts (Galileo testnet, chainId 16602)
 
-Zero Arena is **model-agnostic infrastructure**. We do not host, run, endorse, or depend on any LLM or trading model. Whatever the developer writes inside `decide()` — RSI rule, Claude call, self-hosted Llama, custom RL — is theirs. We just verify what came out.
+| Contract | Address |
+| - | - |
+| `AgentCertificate` | [`0x77f29d2a7BcAC679812d9a0FB1c7508eDA6B087e`](https://chainscan-galileo.0g.ai/address/0x77f29d2a7BcAC679812d9a0FB1c7508eDA6B087e) |
+| `ZeroArenaINFT` | [`0xF7162ecbdB11DE4704043D4aF93B4030AD61700e`](https://chainscan-galileo.0g.ai/address/0xF7162ecbdB11DE4704043D4aF93B4030AD61700e) |
+| `ReencryptionOracle` | [`0x733667CEBB27e310a8fb60799Af73A8C1fe501b2`](https://chainscan-galileo.0g.ai/address/0x733667CEBB27e310a8fb60799Af73A8C1fe501b2) |
+| `LiveCertificate` | [`0x2c71fe022E4698f8fD63384A19Cd69D72a714b4d`](https://chainscan-galileo.0g.ai/address/0x2c71fe022E4698f8fD63384A19Cd69D72a714b4d) |
+| `Season` | [`0x8fb87CE34b4e8F4C65eeB6752b0168EC37806CF3`](https://chainscan-galileo.0g.ai/address/0x8fb87CE34b4e8F4C65eeB6752b0168EC37806CF3) |
 
 ---
 
-## MVP data scope
+## Architecture — infrastructure vs owner-operated
 
-V0.1 anchors to BTC and 0G on Binance — spot first, perpetual futures as a stretch goal. Data is fetched once via `examples/00-binance-ingest`, hashed, uploaded to 0G Storage, and committed in a checked-in `datasets.lock.json`.
+Zero Arena ships **infrastructure**, not a hosted service. Two clear layers:
 
-| Asset | Market | Window |
-| - | - | - |
-| BTC/USDT | Spot &nbsp;·&nbsp; Perp | 365d, 15m candles |
-| 0G/USDT | Spot &nbsp;·&nbsp; Perp (if listed) | from listing, 15m candles |
+```
+┌─ Hosted by Zero Arena (public good) ─────────────────────┐
+│                                                          │
+│   transfer-oracle    season-keeper    FE dashboard       │
+│   (Railway)          (Railway)        (Vercel)           │
+│   ↓                  ↓                ↓                  │
+│   signs proofs       polls + settles  reads chain        │
+│                                                          │
+└──────────────────────────────────────────────────────────┘
+                          │
+            ┌─────────────┼──────────────┐
+            ▼             ▼              ▼
+       0G Chain      0G Storage      Galileo RPC
+       (Certs +      (Encrypted      (public)
+        iNFTs)        run logs)
+            ▲             ▲
+            │             │
+┌─ Run by you (the agent owner) ───────────────────────────┐
+│                                                          │
+│   zeroarena (npm)    paper daemon     your wallet        │
+│   - backtest         - per-iNFT       - signs txs        │
+│   - certify          - 24/7 if you    - holds AES keys   │
+│   - mint               want live cert                    │
+│                                                          │
+└──────────────────────────────────────────────────────────┘
+```
 
-If 0G is not yet on Binance at ship time, the dataset falls back to a DEX OHLCV source — explicitly tagged in metadata.
+The split is intentional: we never want to hold your strategy. The paper daemon code is shipped in [`zero-arena-bacend/`](./zero-arena-bacend/) as a reference impl that owners self-deploy.
+
+---
+
+## Whose key is whose
+
+| Role | Key | Where | When |
+| - | - | - | - |
+| **Agent developer (you)** | `PRIVATE_KEY` | your project's `.env` ([template](https://github.com/Zero-Arena/zero-arena-example-agent/blob/main/.env.example)) | Every `certify` + `mintAgent` call |
+| Oracle operator | `ORACLE_PRIVATE_KEY` | [`zero-arena-be/.env.transfer-oracle.example`](https://github.com/Zero-Arena/zero-arena-be/blob/main/.env.transfer-oracle.example) | Serving `transferAgent` proofs |
+| Paper / season operator | `OPERATOR_PRIVATE_KEY` | [`zero-arena-be/.env.paper.example`](https://github.com/Zero-Arena/zero-arena-be/blob/main/.env.paper.example) | Paper epoch commits, season settles |
+| Contract deployer | `DEPLOYER_PRIVATE_KEY` | [`zero-arena-contracts/.env.example`](https://github.com/Zero-Arena/zero-arena-contracts/blob/main/.env.example) | One-time, already done |
+
+**Agent devs only need row 1.** If anything asks you for an oracle / deployer key, that's a bug.
 
 ---
 
 ## Repositories
 
-| Repository | Purpose | Status |
-| - | - | - |
-| **[zero-arena-sdk](https://github.com/Zero-Arena/zero-arena-sdk)** | TypeScript SDK and CLI &nbsp;·&nbsp; published as `zeroarena` on npm | active |
-| **[zero-arena-contracts](https://github.com/Zero-Arena/zero-arena-contracts)** | Solidity contracts &nbsp;·&nbsp; Foundry &nbsp;·&nbsp; OpenZeppelin v5 | active |
-| **[zero-arena-example-agent](https://github.com/Zero-Arena/zero-arena-example-agent)** | Reference agents and end-to-end demos | active |
-| **[zero-arena-bacend](https://github.com/Zero-Arena/zero-arena-be)** | Dataset ingestion (Binance → 0G Storage) + oracle re-encryption service | active |
-| **[zero-arena-fe](https://github.com/Zero-Arena/zero-arena-fe)** | Public dashboard — leaderboard + agent verification | active |
-| **[zero-arena-docs](https://github.com/Zero-Arena/zero-arena-docs)** | Documentation site | post-hackathon |
+Each is a standalone GitHub repo. Folder names map 1:1 to repos.
 
-<sub>Developers: start at the SDK. &nbsp;·&nbsp; Auditing on-chain logic: start at the contracts. &nbsp;·&nbsp; Looking for a runnable demo: start at the examples.</sub>
+| Repo | Purpose |
+| - | - |
+| [`zero-arena-sdk`](https://github.com/Zero-Arena/zero-arena-sdk) | `zeroarena` npm package — TypeScript SDK + CLI |
+| [`zero-arena-contracts`](https://github.com/Zero-Arena/zero-arena-contracts) | Solidity contracts. Foundry. |
+| [`zero-arena-example-agent`](https://github.com/Zero-Arena/zero-arena-example-agent) | 8 reference agents, multi-mint orchestrator, season scripts |
+| [`zero-arena-be`](https://github.com/Zero-Arena/zero-arena-be) | Backend services: transfer-oracle, season-keeper, paper (ref impl) |
+| [`zero-arena-fe`](https://github.com/Zero-Arena/zero-arena-fe) | Next.js dashboard |
+
+- Building an agent? → [`zero-arena-sdk`](https://github.com/Zero-Arena/zero-arena-sdk) then [`01-rsi-spot-btc`](https://github.com/Zero-Arena/zero-arena-example-agent/tree/main/01-rsi-spot-btc).
+- Auditing contracts? → [`zero-arena-contracts`](https://github.com/Zero-Arena/zero-arena-contracts).
+- Working on the dashboard? → [`zero-arena-fe`](https://github.com/Zero-Arena/zero-arena-fe).
+- Running infrastructure? → [`zero-arena-be`](https://github.com/Zero-Arena/zero-arena-be).
+- Cutting a release? → [`zero-arena-sdk/RELEASE.md`](https://github.com/Zero-Arena/zero-arena-sdk/blob/main/RELEASE.md).
+
+---
+
+## Quick start
+
+```bash
+npx zeroarena init my-agent
+cd my-agent
+# Paste your wallet key when prompted (or generate one: cast wallet new)
+npm start
+```
+
+The wizard scaffolds an `agent.ts`, pre-pins Galileo addresses, runs backtest → certify → mint end-to-end. The dashboard auto-picks up your new iNFT within a minute.
+
+Or manually:
+
+```ts
+import { ZeroArena, Agent } from 'zeroarena';
+
+const za = new ZeroArena({
+  rpc: 'https://evmrpc-testnet.0g.ai',
+  indexer: 'https://indexer-storage-testnet-turbo.0g.ai',
+  privateKey: process.env.PRIVATE_KEY!,
+  addresses: {
+    AgentCertificate:   '0x77f29d2a7BcAC679812d9a0FB1c7508eDA6B087e',
+    ZeroArenaINFT:      '0xF7162ecbdB11DE4704043D4aF93B4030AD61700e',
+    ReencryptionOracle: '0x733667CEBB27e310a8fb60799Af73A8C1fe501b2',
+  },
+});
+
+class RsiAgent extends Agent {
+  decide(obs) {
+    if (obs.rsi14 < 30) return { direction: 1, size: 0.5 };
+    if (obs.rsi14 > 70) return { direction: 0, size: 0 };
+    return { direction: obs.position > 0 ? 1 : 0, size: obs.position > 0 ? 0.5 : 0 };
+  }
+}
+
+const dataset = await za.loadDataset({ rootHash: '0xabc…' });
+const result  = await za.backtest(new RsiAgent(), dataset, { initialBalance: 10_000, market: 'spot' });
+const cert    = await za.certify(result);
+const inft    = await za.mintAgent({ agent: new RsiAgent(), certificate: cert, name: 'RSI v1' });
+```
+
+Full walkthrough: [`01-rsi-spot-btc/`](https://github.com/Zero-Arena/zero-arena-example-agent/tree/main/01-rsi-spot-btc).
+
+---
+
+## Trust model
+
+| Tier | What it proves | Available |
+| - | - | - |
+| **T1 — Commitment** | `runHash` anchored on-chain; trades immutable after submission. | v0.1 |
+| **T2 — Reproducibility** | Owner shares encrypted agent + AES key → verifier reruns → same `runHash`. | v0.1 |
+| **T3 — TEE attestation** | Engine + agent run inside a 0G Compute enclave; trustless verification, code never revealed. | v0.4 |
+
+v0.2 ships **T1 + T2**. The `Certificate` struct reserves the `trustTier` and `attestationHash` slots — v0.4 is wiring, not redesign. Details in [`CLAUDE.md`](./CLAUDE.md).
+
+Zero Arena is **model-agnostic** — we don't bundle, recommend, or depend on any LLM or trading model. Whatever you put in `decide()` is yours.
+
+---
+
+## MVP data scope (v0.2)
+
+Spot only. The perp engine is implemented and reachable from the SDK, but the canonical demo path + leaderboard ranking + paper-engine support all target spot for v0.2. Full perp coverage promoted to v0.3.
+
+| Asset | Market | Granularity | Window |
+| - | - | - | - |
+| BTC/USDT | Spot | 15m | last 365 days |
+| 0G/USDT | Spot (or DEX fallback) | 15m | from listing |
+
+Dataset ingest is in the SDK CLI: `npx zeroarena dataset ingest …` normalizes Binance OHLCV, hashes it, uploads to 0G Storage, and rotates `datasets.lock.json`.
 
 ---
 
 ## Roadmap
 
-```
-v0.1   ───   backtest · certify · mint · transfer        BTC + 0G, spot + perp, T1+T2, testnet
-v0.2   ───   T3 attestation via 0G Compute Sealed Inference
-v0.3   ───   multi-asset universe · paper trading · multiple agent slots
-v1.0   ───   mainnet · agent marketplace                 built on iNFT primitives
-```
+- **v0.1** — backtest, certify, mint, transfer. BTC + 0G spot. T1 + T2. Galileo testnet. ✅
+- **v0.2** — Paper-engine (`LiveCertificate`), seasons (`Season`), live leaderboard, spot canonical. ✅
+- **v0.3** — perpetual futures promoted to canonical (funding accrual, isolated-margin liquidation), multi-asset universe, additional dataset slots per iNFT.
+- **v0.4** — T3 via 0G Compute Sealed Inference. TEE-attested oracle + paper daemon.
+- **v1.0** — mainnet, public agent marketplace.
 
-The SDK surface is additive. The `Certificate` struct already reserves `trustTier` and `attestationHash` slots, so v0.2 is wiring, not redesign.
-
----
-
-## Why 0G
-
-| | |
-| - | - |
-| **0G Storage** | Built-in AES-256 makes it the right substrate for proprietary agent IP — transferable, never exposed in plaintext. |
-| **0G Chain** | Certificate anchoring and ERC-7857 minting at low cost. |
-| **0G Compute (TEE substrate)** | Intel TDX + NVIDIA H100/H200 enclaves. We use it as generic confidential compute — `BacktestEngine` runs inside, the developer's agent runs inside, the TEE signs the run. We do not use 0G's models. Lights up T3 in v0.2. |
-| **ERC-7857** | The iNFT standard solves the AI-asset transfer problem ERC-721 cannot. |
+The v0.1 API is additive; later phases are wiring.
 
 ---
 
-<div align="center">
+## License
 
-<sub>Built for the **0G APAC Hackathon 2026** — Track 2: Agentic Trading Arena.</sub>
-
-<sub>MIT-licensed &nbsp;·&nbsp; No live trading &nbsp;·&nbsp; Testnet only</sub>
-
-</div>
+MIT. Galileo testnet today; mainnet in v1.0.
