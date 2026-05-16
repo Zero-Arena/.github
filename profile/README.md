@@ -146,8 +146,8 @@ flowchart TB
   SK -->|read Season state| Season
   SK -->|settle when ready| Season
 
-  CLI -.->|transferAgent: ask oracle for sig| TO
-  TO -.->|EIP-191 sig (chain-agnostic)| INFT
+  CLI -.->|transferAgent asks oracle for sig| TO
+  TO -.->|EIP-191 signature, chain-agnostic| INFT
 
   Dashboard -.->|read chain state| CHAIN
   Dashboard -.->|optional storage read| STO
